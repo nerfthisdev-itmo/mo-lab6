@@ -3,24 +3,7 @@ package genetic
 import (
 	"fmt"
 	"math/rand"
-	"sort"
 )
-
-var Reset = "\033[0m"
-var Red = "\033[31m"
-var Green = "\033[32m"
-
-var Paths [][]int = [][]int{
-	{0, 1, 7, 2, 8},  // City 1
-	{2, 0, 10, 3, 1}, // City 2
-	{7, 10, 0, 2, 6}, // City 3
-	{2, 3, 2, 0, 4},  // City 4
-	{8, 1, 6, 4, 0},  // City 5
-}
-
-var probability float64 = 0.01
-
-var genomeIDCounter int
 
 type Genome struct {
 	ID         int
@@ -43,7 +26,7 @@ func (g *Genome) mutate() {
 	oldCost := g.Cost
 	g.Chromosome[i], g.Chromosome[j] = g.Chromosome[j], g.Chromosome[i]
 	g.evaluate()
-	fmt.Printf("Species ID: %d has mutated! Cost changed from %d to %d\n", g.ID, oldCost, g.Cost)
+	fmt.Printf(Magenta+"Species ID: %d has mutated! Cost changed from %d to %d\n"+Reset, g.ID, oldCost, g.Cost)
 }
 
 func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
@@ -122,83 +105,4 @@ func createSpecies() Genome {
 		numbers[i], numbers[j] = numbers[j], numbers[i]
 	})
 	return NewGenome(numbers)
-}
-
-func GeneratePopulation(n int) []Genome {
-	population := make([]Genome, n)
-
-	for i := range n {
-		g := createSpecies()
-		population[i] = g
-		fmt.Printf("Generated new species ID: %d Chromosome: %v Cost: %d\n", g.ID, g.Chromosome, g.Cost)
-	}
-
-	printOverview(population)
-
-	return population
-}
-
-func Evolve(population []Genome) {
-	fmt.Println(Green + "Starting the evolution cycle..." + Reset)
-
-	indexes := rand.Perm(len(population))
-
-	for i := 0; i < len(indexes)-1; i += 2 {
-		parent1 := population[indexes[i]]
-		parent2 := population[indexes[i+1]]
-
-		child1, child2 := parent1.Reproduce(parent2)
-
-		population = append(population, child1, child2)
-	}
-
-	printOverview(population)
-
-	reduce(population)
-
-	fmt.Println(Green + "Evolution cycle has ended" + Reset)
-}
-
-func reduce(population []Genome) {
-	sortByCostDesc(population)
-	for i := 0; i <= len(population)/2-1; i++ {
-		g := population[i]
-		fmt.Printf(Red+"Killed species ID: %d Chromosome: %v Cost: %d\n"+Reset, g.ID, g.Chromosome, g.Cost)
-	}
-
-	population = population[len(population)/2:]
-
-	printOverview(population)
-}
-
-func getRandomIndexes(n int) (int, int) {
-	a := rand.Intn(n)
-	b := rand.Intn(n)
-
-	for a == b {
-		b = rand.Intn(n)
-	}
-
-	if a < b {
-		return a, b
-	}
-
-	return b, a
-
-}
-
-func printOverview(population []Genome) {
-	fmt.Println()
-	fmt.Printf("%-5s | %-5s | %-5s\n", "ID", "Chromosome", "Cost")
-	fmt.Println("-----------------------------")
-	for _, g := range population {
-		fmt.Printf("%-5d | %v | %-5d\n", g.ID, g.Chromosome, g.Cost)
-	}
-	fmt.Println()
-}
-
-func sortByCostDesc(population []Genome) {
-	sort.Slice(population, func(i, j int) bool {
-		return population[i].Cost > population[j].Cost
-	})
 }
