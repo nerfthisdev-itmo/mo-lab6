@@ -10,12 +10,15 @@ var Paths [][]int = [][]int{
 	{8, 1, 6, 4, 0},  // City 5
 }
 
+var genomeIDCounter int
+
 type Genome struct {
+	ID         int
 	Chromosome []int
 	Cost       int
 }
 
-func (g *Genome) Evaluate() {
+func (g *Genome) evaluate() {
 	g.Cost = 0
 	for i := range len(g.Chromosome) - 1 {
 		from := g.Chromosome[i]
@@ -25,8 +28,23 @@ func (g *Genome) Evaluate() {
 	g.Cost += Paths[g.Chromosome[len(g.Chromosome)-1]][g.Chromosome[0]]
 }
 
+func NewGenome(chromosome []int) Genome {
+	g := Genome{
+		ID:         genomeIDCounter,
+		Chromosome: chromosome,
+	}
+	genomeIDCounter++
+	g.evaluate()
+	return g
+}
+
+func (g *Genome) mutate() {
+	i, j := getRandomIndexes()
+	g.Chromosome[i], g.Chromosome[j] = g.Chromosome[j], g.Chromosome[i]
+}
+
 func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
-	br1, br2 := getBreakPoints()
+	br1, br2 := getRandomIndexes()
 
 	segment1 := parent1.Chromosome[br1 : br2+1]
 	segment2 := parent2.Chromosome[br1 : br2+1]
@@ -67,30 +85,16 @@ func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
 	fillRemaining(child1, segment1, parent2.Chromosome)
 	fillRemaining(child2, segment2, parent1.Chromosome)
 
-	g1 := Genome{Chromosome: child1}
-	g2 := Genome{Chromosome: child2}
-
-	g1.Evaluate()
-	g2.Evaluate()
-
-	return g1, g2
+	return NewGenome(child1), NewGenome(child2)
 
 }
 
 func createSpecies() Genome {
-	var g Genome
-
 	numbers := []int{0, 1, 2, 3, 4}
-
 	rand.Shuffle(len(numbers), func(i, j int) {
 		numbers[i], numbers[j] = numbers[j], numbers[i]
 	})
-
-	g.Chromosome = numbers
-
-	g.Evaluate()
-
-	return g
+	return NewGenome(numbers)
 }
 
 func GeneratePopulation(n int) []Genome {
@@ -103,7 +107,7 @@ func GeneratePopulation(n int) []Genome {
 	return population
 }
 
-func getBreakPoints() (int, int) {
+func getRandomIndexes() (int, int) {
 	length := 4
 	a := rand.Intn(length)
 	b := rand.Intn(length)
