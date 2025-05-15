@@ -15,7 +15,71 @@ type Genome struct {
 	Cost       int
 }
 
-func (g *Genome) CreateSpecies() {
+func (g *Genome) Evaluate() {
+	g.Cost = 0
+	for i := range len(g.Chromosome) - 1 {
+		from := g.Chromosome[i]
+		to := g.Chromosome[i+1]
+		g.Cost += Paths[from][to]
+	}
+	g.Cost += Paths[g.Chromosome[len(g.Chromosome)-1]][g.Chromosome[0]]
+}
+
+func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
+	br1, br2 := getBreakPoints()
+
+	segment1 := parent1.Chromosome[br1 : br2+1]
+	segment2 := parent2.Chromosome[br1 : br2+1]
+
+	child1 := make([]int, len(parent1.Chromosome))
+	child2 := make([]int, len(parent2.Chromosome))
+
+	for i := range child1 {
+		child1[i] = -1
+		child2[i] = -1
+	}
+
+	copy(child1[br1:br2+1], segment1)
+	copy(child2[br1:br2+1], segment2)
+
+	fillRemaining := func(child, segment, donor []int) {
+		used := make(map[int]bool)
+		for _, v := range segment {
+			used[v] = true
+		}
+
+		startIdx := (br1 + 1) % len(donor)
+		insertIdx := 0
+
+		for i := range donor {
+			gene := donor[(startIdx+i)%len(donor)]
+			if !used[gene] {
+
+				for child[insertIdx] != -1 {
+					insertIdx++
+				}
+				child[insertIdx] = gene
+				used[gene] = true
+			}
+		}
+	}
+
+	fillRemaining(child1, segment1, parent2.Chromosome)
+	fillRemaining(child2, segment2, parent1.Chromosome)
+
+	g1 := Genome{Chromosome: child1}
+	g2 := Genome{Chromosome: child2}
+
+	g1.Evaluate()
+	g2.Evaluate()
+
+	return g1, g2
+
+}
+
+func createSpecies() Genome {
+	var g Genome
+
 	numbers := []int{0, 1, 2, 3, 4}
 
 	rand.Shuffle(len(numbers), func(i, j int) {
@@ -24,15 +88,34 @@ func (g *Genome) CreateSpecies() {
 
 	g.Chromosome = numbers
 
-	for i := range len(g.Chromosome) - 1 {
-		from := g.Chromosome[i]
-		to := g.Chromosome[i+1]
-		g.Cost += Paths[from][to]
+	g.Evaluate()
+
+	return g
+}
+
+func GeneratePopulation(n int) []Genome {
+	population := make([]Genome, n)
+
+	for i := range n {
+		population[i] = createSpecies()
 	}
 
-	// return to 1st city in chain
-	start := g.Chromosome[0]
-	end := g.Chromosome[len(g.Chromosome)-1]
-	g.Cost += Paths[end][start]
+	return population
+}
+
+func getBreakPoints() (int, int) {
+	length := 4
+	a := rand.Intn(length)
+	b := rand.Intn(length)
+
+	for a == b {
+		b = rand.Intn(length)
+	}
+
+	if a < b {
+		return a, b
+	}
+
+	return b, a
 
 }
