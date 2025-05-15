@@ -1,7 +1,7 @@
 package genetic
 
 import (
-	"log"
+	"fmt"
 	"math/rand"
 )
 
@@ -44,13 +44,15 @@ func NewGenome(chromosome []int) Genome {
 }
 
 func (g *Genome) mutate() {
-	i, j := getRandomIndexes()
+	i, j := getRandomIndexes(4)
+	oldCost := g.Cost
 	g.Chromosome[i], g.Chromosome[j] = g.Chromosome[j], g.Chromosome[i]
-	log.Printf("Species ID: %d has mutated!", g.ID)
+	g.evaluate()
+	fmt.Printf("Species ID: %d has mutated!\n Cost changed from %d to %d", g.ID, oldCost, g.Cost)
 }
 
 func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
-	br1, br2 := getRandomIndexes()
+	br1, br2 := getRandomIndexes(4)
 
 	segment1 := parent1.Chromosome[br1 : br2+1]
 	segment2 := parent2.Chromosome[br1 : br2+1]
@@ -102,6 +104,9 @@ func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
 		g2.mutate()
 	}
 
+	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n", parent1.ID, parent2.ID, g1.ID, g1.Chromosome, g1.Cost)
+	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n", parent1.ID, parent2.ID, g2.ID, g2.Chromosome, g1.Cost)
+
 	return g1, g2
 
 }
@@ -118,19 +123,41 @@ func GeneratePopulation(n int) []Genome {
 	population := make([]Genome, n)
 
 	for i := range n {
-		population[i] = createSpecies()
+		g := createSpecies()
+		population[i] = g
+		fmt.Printf("Generated new species ID: %d Chromosome: %v Cost: %d\n", g.ID, g.Chromosome, g.Cost)
 	}
+
+	printOverview(population)
 
 	return population
 }
 
-func getRandomIndexes() (int, int) {
-	length := 4
-	a := rand.Intn(length)
-	b := rand.Intn(length)
+func Evolve(population []Genome) {
+	fmt.Println("Starting the evolution cycle...")
+
+	indexes := rand.Perm(len(population))
+
+	for i := 0; i < len(indexes)-1; i += 2 {
+		parent1 := population[indexes[i]]
+		parent2 := population[indexes[i+1]]
+
+		child1, child2 := parent1.Reproduce(parent2)
+
+		population = append(population, child1, child2)
+	}
+
+	printOverview(population)
+
+	fmt.Println("Evolution cycle has ended")
+}
+
+func getRandomIndexes(n int) (int, int) {
+	a := rand.Intn(n)
+	b := rand.Intn(n)
 
 	for a == b {
-		b = rand.Intn(length)
+		b = rand.Intn(n)
 	}
 
 	if a < b {
@@ -139,4 +166,12 @@ func getRandomIndexes() (int, int) {
 
 	return b, a
 
+}
+
+func printOverview(population []Genome) {
+	fmt.Printf("%-5s | %-5s | %-5s\n", "ID", "Chromosome", "Cost")
+	fmt.Println("-----------------------------")
+	for _, g := range population {
+		fmt.Printf("%-5d | %v | %-5d\n", g.ID, g.Chromosome, g.Cost)
+	}
 }
