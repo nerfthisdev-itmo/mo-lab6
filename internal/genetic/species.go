@@ -1,6 +1,9 @@
 package genetic
 
-import "math/rand"
+import (
+	"log"
+	"math/rand"
+)
 
 var Paths [][]int = [][]int{
 	{0, 1, 7, 2, 8},  // City 1
@@ -9,6 +12,8 @@ var Paths [][]int = [][]int{
 	{2, 3, 2, 0, 4},  // City 4
 	{8, 1, 6, 4, 0},  // City 5
 }
+
+var probability float64 = 0.01
 
 var genomeIDCounter int
 
@@ -41,6 +46,7 @@ func NewGenome(chromosome []int) Genome {
 func (g *Genome) mutate() {
 	i, j := getRandomIndexes()
 	g.Chromosome[i], g.Chromosome[j] = g.Chromosome[j], g.Chromosome[i]
+	log.Printf("Species ID: %d has mutated!", g.ID)
 }
 
 func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
@@ -85,7 +91,18 @@ func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
 	fillRemaining(child1, segment1, parent2.Chromosome)
 	fillRemaining(child2, segment2, parent1.Chromosome)
 
-	return NewGenome(child1), NewGenome(child2)
+	g1 := NewGenome(child1)
+	g2 := NewGenome(child2)
+
+	if rand.Float64() < probability {
+		g1.mutate()
+	}
+
+	if rand.Float64() < probability {
+		g2.mutate()
+	}
+
+	return g1, g2
 
 }
 
