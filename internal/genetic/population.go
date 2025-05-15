@@ -20,7 +20,7 @@ func GeneratePopulation(n int) []Genome {
 	return population
 }
 
-func Evolve(population []Genome) {
+func Evolve(population []Genome) []Genome {
 	fmt.Println(Green + "Starting the evolution cycle..." + Reset)
 
 	indexes := rand.Perm(len(population))
@@ -36,21 +36,24 @@ func Evolve(population []Genome) {
 
 	printOverview(population)
 
-	reduce(population)
+	population = reduce(population) // ← ВАЖНО: обновляем переменную
 
 	fmt.Println(Green + "Evolution cycle has ended" + Reset)
+
+	return population
 }
 
-func reduce(population []Genome) {
+func reduce(population []Genome) []Genome {
 	sortByCostDesc(population)
 	for i := 0; i <= len(population)/2-1; i++ {
 		g := population[i]
 		fmt.Printf(Red+"Killed species ID: %d Chromosome: %v Cost: %d\n"+Reset, g.ID, g.Chromosome, g.Cost)
 	}
 
-	population = population[len(population)/2:]
+	newPopulation := population[len(population)/2:]
 
-	printOverview(population)
+	printOverview(newPopulation)
+	return newPopulation
 }
 
 func printOverview(population []Genome) {

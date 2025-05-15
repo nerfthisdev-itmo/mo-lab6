@@ -17,7 +17,7 @@ func main() {
 	for i := range n {
 		fmt.Printf("GEN %d\n", i+1)
 		fmt.Println("------------------------------------")
-		genetic.Evolve(population)
+		population = genetic.Evolve(population)
 		fmt.Println("------------------------------------")
 	}
 }
