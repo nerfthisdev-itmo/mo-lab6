@@ -6,6 +6,10 @@ import (
 	"sort"
 )
 
+var Reset = "\033[0m"
+var Red = "\033[31m"
+var Green = "\033[32m"
+
 var Paths [][]int = [][]int{
 	{0, 1, 7, 2, 8},  // City 1
 	{2, 0, 10, 3, 1}, // City 2
@@ -39,7 +43,7 @@ func (g *Genome) mutate() {
 	oldCost := g.Cost
 	g.Chromosome[i], g.Chromosome[j] = g.Chromosome[j], g.Chromosome[i]
 	g.evaluate()
-	fmt.Printf("Species ID: %d has mutated!\n Cost changed from %d to %d", g.ID, oldCost, g.Cost)
+	fmt.Printf("Species ID: %d has mutated! Cost changed from %d to %d\n", g.ID, oldCost, g.Cost)
 }
 
 func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
@@ -96,7 +100,7 @@ func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
 	}
 
 	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n", parent1.ID, parent2.ID, g1.ID, g1.Chromosome, g1.Cost)
-	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n", parent1.ID, parent2.ID, g2.ID, g2.Chromosome, g1.Cost)
+	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n\n", parent1.ID, parent2.ID, g2.ID, g2.Chromosome, g1.Cost)
 
 	return g1, g2
 
@@ -135,7 +139,7 @@ func GeneratePopulation(n int) []Genome {
 }
 
 func Evolve(population []Genome) {
-	fmt.Println("Starting the evolution cycle...")
+	fmt.Println(Green + "Starting the evolution cycle..." + Reset)
 
 	indexes := rand.Perm(len(population))
 
@@ -152,14 +156,14 @@ func Evolve(population []Genome) {
 
 	reduce(population)
 
-	fmt.Println("Evolution cycle has ended")
+	fmt.Println(Green + "Evolution cycle has ended" + Reset)
 }
 
 func reduce(population []Genome) {
 	sortByCostDesc(population)
 	for i := 0; i <= len(population)/2-1; i++ {
 		g := population[i]
-		fmt.Printf("Killed species ID: %d Chromosome: %v Cost: %d\n", g.ID, g.Chromosome, g.Cost)
+		fmt.Printf(Red+"Killed species ID: %d Chromosome: %v Cost: %d\n"+Reset, g.ID, g.Chromosome, g.Cost)
 	}
 
 	population = population[len(population)/2:]
@@ -184,11 +188,13 @@ func getRandomIndexes(n int) (int, int) {
 }
 
 func printOverview(population []Genome) {
+	fmt.Println()
 	fmt.Printf("%-5s | %-5s | %-5s\n", "ID", "Chromosome", "Cost")
 	fmt.Println("-----------------------------")
 	for _, g := range population {
 		fmt.Printf("%-5d | %v | %-5d\n", g.ID, g.Chromosome, g.Cost)
 	}
+	fmt.Println()
 }
 
 func sortByCostDesc(population []Genome) {
