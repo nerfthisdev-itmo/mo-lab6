@@ -3,6 +3,7 @@ package genetic
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 )
 
 var Paths [][]int = [][]int{
@@ -31,16 +32,6 @@ func (g *Genome) evaluate() {
 		g.Cost += Paths[from][to]
 	}
 	g.Cost += Paths[g.Chromosome[len(g.Chromosome)-1]][g.Chromosome[0]]
-}
-
-func NewGenome(chromosome []int) Genome {
-	g := Genome{
-		ID:         genomeIDCounter,
-		Chromosome: chromosome,
-	}
-	genomeIDCounter++
-	g.evaluate()
-	return g
 }
 
 func (g *Genome) mutate() {
@@ -111,6 +102,16 @@ func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
 
 }
 
+func NewGenome(chromosome []int) Genome {
+	g := Genome{
+		ID:         genomeIDCounter,
+		Chromosome: chromosome,
+	}
+	genomeIDCounter++
+	g.evaluate()
+	return g
+}
+
 func createSpecies() Genome {
 	numbers := []int{0, 1, 2, 3, 4}
 	rand.Shuffle(len(numbers), func(i, j int) {
@@ -149,7 +150,21 @@ func Evolve(population []Genome) {
 
 	printOverview(population)
 
+	reduce(population)
+
 	fmt.Println("Evolution cycle has ended")
+}
+
+func reduce(population []Genome) {
+	sortByCostDesc(population)
+	for i := 0; i <= len(population)/2-1; i++ {
+		g := population[i]
+		fmt.Printf("Killed species ID: %d Chromosome: %v Cost: %d\n", g.ID, g.Chromosome, g.Cost)
+	}
+
+	population = population[len(population)/2:]
+
+	printOverview(population)
 }
 
 func getRandomIndexes(n int) (int, int) {
@@ -174,4 +189,10 @@ func printOverview(population []Genome) {
 	for _, g := range population {
 		fmt.Printf("%-5d | %v | %-5d\n", g.ID, g.Chromosome, g.Cost)
 	}
+}
+
+func sortByCostDesc(population []Genome) {
+	sort.Slice(population, func(i, j int) bool {
+		return population[i].Cost > population[j].Cost
+	})
 }
