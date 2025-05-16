@@ -24,16 +24,21 @@ func Evolve(population []Genome) []Genome {
 	fmt.Println(Green + "Starting the evolution cycle..." + Reset)
 
 	newGen := make([]Genome, 0)
+	usedGenome := make(map[int]bool)
 
 	for i := 0; i < len(population)/2; i++ {
+
 		parent1 := selectParentByRoulette(population)
 		parent2 := selectParentByRoulette(population)
 
-		for parent1.ID == parent2.ID {
+		for usedGenome[parent1.ID] || usedGenome[parent2.ID] || parent1.ID == parent2.ID {
+			parent1 = selectParentByRoulette(population)
 			parent2 = selectParentByRoulette(population)
 		}
 
 		child1, child2 := parent1.Reproduce(parent2)
+		usedGenome[parent1.ID] = true
+		usedGenome[parent2.ID] = true
 		newGen = append(newGen, child1, child2)
 	}
 
@@ -61,7 +66,7 @@ func reduce(population []Genome) []Genome {
 
 func printOverview(population []Genome) {
 	fmt.Println()
-	fmt.Printf("%-5s | %-20s | %-5s | %-10s\n", "ID", "Chromosome", "Cost", "P(select)")
+	fmt.Printf("%-5s | %-s | %-5s | %-5s\n", "ID", "Chromosome", "Cost", "P(select)")
 	fmt.Println("-------------------------------------------------------------")
 
 	total := 0.0
@@ -101,7 +106,7 @@ func selectParentByRoulette(population []Genome) Genome {
 	}
 
 	for i := range probabilities {
-		probabilities[i] /= total
+		probabilities[i] = total
 	}
 
 	r := rand.Float64()

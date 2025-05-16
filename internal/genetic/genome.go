@@ -82,8 +82,22 @@ func (parent1 Genome) Reproduce(parent2 Genome) (Genome, Genome) {
 		g2.mutate()
 	}
 
-	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n", parent1.ID, parent2.ID, g1.ID, g1.Chromosome, g1.Cost)
-	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n\n", parent1.ID, parent2.ID, g2.ID, g2.Chromosome, g1.Cost)
+	fmt.Printf("Parent 1 ID: %d Chromosome(separated): %s\n", parent1.ID, parentToString(parent1, br1, br2))
+	fmt.Printf("Parent 2 ID: %d Chromosome(separated): %s\n", parent2.ID, parentToString(parent2, br1, br2))
+
+	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n",
+		parent1.ID,
+		parent2.ID,
+		g1.ID,
+		g1.Chromosome,
+		g1.Cost)
+
+	fmt.Printf("New child of parents %d and %d: %d Chromosome: %v Cost: %d\n\n",
+		parent1.ID,
+		parent2.ID,
+		g2.ID,
+		g2.Chromosome,
+		g1.Cost)
 
 	return g1, g2
 
@@ -105,4 +119,21 @@ func createSpecies() Genome {
 		numbers[i], numbers[j] = numbers[j], numbers[i]
 	})
 	return NewGenome(numbers)
+}
+
+func parentToString(g Genome, br1, br2 int) string {
+	result := ""
+
+	for i, gene := range g.Chromosome {
+		if i == br1 {
+			result += "|"
+		}
+		result += fmt.Sprintf("%d", gene)
+		if i == br2 {
+			result += "|"
+		} else if i < len(g.Chromosome)-1 {
+		}
+	}
+
+	return result
 }
